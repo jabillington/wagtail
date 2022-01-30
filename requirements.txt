@@ -1,0 +1,5 @@
+scipy
+bokeh
+dna_features_viewer
+pandas
+ipykernel
