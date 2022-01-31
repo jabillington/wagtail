@@ -13,3 +13,7 @@ features=[
 ]
 record = GraphicRecord(sequence_length=1000, features=features)
 record.plot(figure_width=5)
+
+# %%
+
+
