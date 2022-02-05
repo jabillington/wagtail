@@ -13,7 +13,7 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
  RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
     && rm -rf /tmp/pip-tmp
 
-RUN pip3 install  -e git+https://github.com/dmnfarrell/pybioviz.git#egg=pybioviz
+RUN pip3 install  -e git+https://github.com/jabillington/pybioviz.git@tailoring_to_monti#egg=pybioviz
 
 
 # [Optional] Uncomment this section to install additional OS packages.
