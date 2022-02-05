@@ -4,3 +4,4 @@ dna_features_viewer
 pandas
 ipykernel
 geneblocks
+jupyter_bokeh

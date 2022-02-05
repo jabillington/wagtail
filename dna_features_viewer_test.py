@@ -46,5 +46,17 @@ fig.savefig("complex_sequences.png", bbox_inches='tight')
 
 common_blocks
 # %%
+from geneblocks import load_record, DiffBlocks, CommonBlocks
+import matplotlib.pyplot as plt
+
+seq_1 = load_record("d378_attB-entry.gb")
+seq_2 = load_record("d378_attB-mneon-puro-n.gb")
+
+# FIND COMMON BLOCKS AND DIFFS
+common_blocks = CommonBlocks.from_sequences({'seq_1': seq_1, 'seq_2': seq_2})
+diff_blocks = DiffBlocks.from_sequences(seq_1, seq_2).merged()
+common_blocks.common_blocks_records()
+
+
 
 # %%
