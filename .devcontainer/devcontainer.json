@@ -37,6 +37,20 @@
 		"ms-python.vscode-pylance"
 	],
 
+
+	"tasks": [
+		{
+		  "type": "docker-run",
+		  "label": "docker-run: debug",
+		  "dependsOn": ["docker-build"],
+		  "python": {
+			"module": "pybioviz"
+		  }
+		}
+	  ],
+
+
+
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 

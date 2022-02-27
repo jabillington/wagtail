@@ -24,6 +24,8 @@ from pybioviz import dashboards, utils, plotters
 from importlib import reload
 
 
+# %%
+
 def plot_features(features, start=0, end=None, fontsize="8pt", plot_width=800, plot_height=150,
                   tools="xpan, xwheel_zoom, save", color='#abdda4', rows=3, key='gene'):
     """Bokeh sequence alignment view"""

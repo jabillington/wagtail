@@ -19,7 +19,7 @@
 				"docker-build"
 			],
 			"python": {
-				"file": "hello/hello.py"
+				"file": "pybioviz/pybioviz/dashboards.py"
 			}
 		}
 	]
