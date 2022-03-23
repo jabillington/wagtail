@@ -24,93 +24,6 @@ from pybioviz import dashboards, utils, plotters
 from importlib import reload
 
 
-# %%
-
-def plot_features(features, start=0, end=None, fontsize="8pt", plot_width=800, plot_height=150,
-                  tools="xpan, xwheel_zoom, save", color='#abdda4', rows=3, key='gene'):
-    """Bokeh sequence alignment view"""
-    
-    df = utils.features_to_dataframe(features)#, cds=True)    
-    df = df[(df.type!='region') & (df['type']!='source')]   
-    df['length'] = df.end-df.start
-    #df['level'] = 1
-    #df['color'] = random_colors(len(df)) #'green'
-    df['x'] = df.start+df.length/2
-    df = df.fillna('')
-    def get_arrow(x):
-        if x.strand == 1:
-            return x.end
-        else:
-            return x.start
-
-    df['arrow_start'] = df.apply(get_arrow,1)
-    df['arrow_end'] = df.apply(lambda x: x.arrow_start+50 if x.strand==1 else x.arrow_start-50, 1)
-    
-    #def get_y(x):
-    #    df['col'].shift()
-    np.random.seed(8) 
-    
-    #df['y'] = np.random.randint(1,9, len(df))
-    y = list(range(0,rows)) * len(df)
-    df['y'] = y[:len(df)]
-    
-    if end == None:
-        end = df.end.max()+100
-        if end>10000:
-            end=10000
-    #print (df[:3])
-    text = df.gene
-    S = df.start.min()
-    N = df.end.max()+10        
-    x = list(df.start+df.length/2)
-    h = 20
-
-    source = ColumnDataSource(df)
-    x_range = Range1d(start,end,min_interval=1)  
-    viewlen = end-start
-    hover = HoverTool(
-        tooltips=[            
-            ("gene", "@gene"),     
-            ("locus_tag", "@locus_tag"),
-            ("product", "@product"), 
-            ("strand", "@strand"),
-            ("length", "@length"),             
-        ],        
-    )  
-    tools=[hover, tools]    
-    #sequence text view with ability to scroll along x axis
-    p = figure(title=None, plot_width=plot_width, plot_height=plot_height, x_range=x_range,
-                y_range=(-1,rows), tools=tools, min_border=0, toolbar_location='right')#, lod_factor=1)
-    #display text only at certain zoom level?
-    #print (viewlen)
-    if viewlen<20000:
-        tags = Text(x="x", y="y", y_offset=-8, text=key, text_align='center',text_color="black", 
-                     text_font="monospace",text_font_size=fontsize, name="genetext")
-        p.add_glyph(source, tags)
-    #rects
-    rects = Rect(x="x", y="y", width="length", height=.4, fill_color=color, fill_alpha=0.4, name='rects')
-    #arrows
-    arr = Arrow(source=source, x_start="arrow_start", x_end="arrow_end", y_start="y", y_end="y", 
-                line_color="black", name='arrows', end=NormalHead(size=8))
-    p.add_glyph(source, rects)    
-    p.add_layout(arr)
-    
-    p.grid.visible = False
-    p.yaxis.visible = False
-    p.xaxis.major_label_text_font_style = "bold"
-    p.yaxis.minor_tick_line_width = 0
-    p.yaxis.major_tick_line_width = 0
-    p.toolbar.logo = None
-    p.xaxis.formatter = NumeralTickFormatter(format="(0,0)")
-    return p
-
-feats = utils.gff_to_features('example.gff')
-#feats = utils.genbank_to_features('1765.416.gbk',key=12)
-#feats = utils.gff_to_features('Mbovis_AF212297.gff')
-p = plot_features(features=feats, start=100)
-pn.pane.Bokeh(p)
-
-
 
 # %%
 import panel as pn
@@ -121,4 +34,99 @@ app = dashboards.genome_features_viewer('example.gff')
 app
 # %%
 
+# %%
+def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
+    """Gene feature viewer app"""    
+    
+    if gff_file is None:
+        return
+    
+    features = utils.gff_to_features(gff_file)
+    df = utils.features_to_dataframe(features)
+    utils.get_fasta_sequence(ref_file)
+    loc_pane = pnw.TextInput(name='location',value='',width=150)
+    slider = pnw.IntSlider(name='start',start=1,end=1000,step=500,value=1,width=plot_width)
+    xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=1000,value=500,step=5,width=100)  
+    feature_pane = pn.pane.Bokeh(height=200,margin=10)
+    seq_pane = pn.pane.Bokeh(height=100,margin=10)
+    highlight_sel = pnw.Select(name='highlight mode',value='default',options=['default',''],width=100)
+    rowheight_sl = pnw.IntSlider(name='row height',value=10,start=5,end=20,width=120)
+    
+    if ref_file is not None:
+        seqlen = utils.get_fasta_length(ref_file)
+        slider.end = seqlen
+    else:
+        slider.end = int(df.end.max())
+
+    def search_features(event):
+        """Find a feature"""
+        
+        term = search_pane.value        
+        feats = utils.gff_to_features(gff_file)
+        df = utils.features_to_dataframe(feats)    
+        df['gene'] = df.gene.fillna('')
+        f = df[df.gene.str.contains(term)].iloc[0]
+        #debug_pane.object = str(f.start)
+        slider.value = int(f.start)-100
+        update(event)
+        return   
+    
+    def pan(event):
+        p = feature_pane.object
+        rng = p.x_range.end-p.x_range.start        
+        inc = int(rng/10)
+        print (event.obj.name)
+        if event.obj.name == '<':
+            slider.value = int(slider.value) - inc        
+        else:
+            slider.value = int(slider.value) + inc   
+        update(event)
+        return
+    
+    def update(event):      
+        print (event.obj.name)
+        if event.obj.name in ['start', 'zoom']:
+            xzoom = xzoom_slider.value*200
+            start = int(slider.value)
+            N = xzoom/2
+            end = int(start+N)
+            loc_pane.value = str(start)+':'+str(end)            
+        elif event.obj.name == 'location':            
+            vals = loc_pane.value.split(':')
+            start = int(vals[0])
+            end = int(vals[1])
+            slider.value = start        
+        
+        p = feature_pane.object
+        p.x_range.start = start
+        p.x_range.end = end
+        if ref_file:
+            sequence = utils.get_fasta_sequence(ref_file, start, end)
+            seq_pane.object = plotters.plot_sequence(sequence, plot_width, plot_height=50,fontsize='9pt',xaxis=False)            
+        return
+        
+    slider.param.watch(update,'value',onlychanged=True)
+    #slider.param.trigger('value')    
+    xzoom_slider.param.watch(update,'value')       
+    search_pane.param.watch(search_features,'value')    
+    loc_pane.param.watch(update,'value',onlychanged=True)    
+    left_button.param.watch(pan,'clicks')
+    right_button.param.watch(pan,'clicks')
+
+    p = feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
+    
+    #side = pn.Column(file_input,css_classes=['form'],width=200,margin=20)
+    top = pn.Row(loc_pane,xzoom_slider)
+    main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
+    app = pn.Column(top,slider,main, sizing_mode='stretch_width',width_policy='max',margin=20)
+    return app
+
+
+# %%
+import panel as pn
+#need to load panel extension first
+pn.extension(comms='vscode')
+from pybioviz import dashboards
+app = plasmid_features_viewer('example.gff')
+app
 # %%
