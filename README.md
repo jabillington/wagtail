@@ -1,4 +1,4 @@
-# montacilla
+# Wagtail
 An updated sequence viewer/editor for genome engineering 
 
 Based on conversations with other users, and my own experience several features that are missing currently from sequence editor or that could 
