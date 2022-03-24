@@ -46,13 +46,9 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     df = utils.features_to_dataframe(features)
     
     loc_pane = pnw.TextInput(name='location',value='',width=150)
-    search_pane = pnw.TextInput(name='find_gene',value='',width=220)
     slider = pnw.IntSlider(name='start',start=0,end=10000,step=500,value=1,width=plot_width)
     xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=5,width=100)
     chrom_select = pnw.Select(name='chrom',width=220)
-    left_button = pnw.Button(name='<',width=40)
-    right_button = pnw.Button(name='>',width=40)
-    
     feature_pane = pn.pane.Bokeh(height=100,margin=10)
     seq_pane = pn.pane.Bokeh(height=50,margin=10)
     
@@ -61,19 +57,6 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
         slider.end = seqlen
     else:
         slider.end = int(df.end.max())
-
-    def search_features(event):
-        """Find a feature"""
-        
-        term = search_pane.value        
-        feats = utils.gff_to_features(gff_file)
-        df = utils.features_to_dataframe(feats)    
-        df['gene'] = df.gene.fillna('')
-        f = df[df.gene.str.contains(term)].iloc[0]
-        #debug_pane.object = str(f.start)
-        slider.value = int(f.start)-100
-        update(event)
-        return   
     
     def pan(event):
         p = feature_pane.object
@@ -107,17 +90,13 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
         p.x_range.end = end
         if ref_file:
             sequence = utils.get_fasta_sequence(ref_file, start, end)
-            seq_pane.object = plotters.plot_sequence(sequence, plot_width, plot_height=50,fontsize='9pt',xaxis=False)            
+            seq_pane.object = plotters.plot_sequence(sequence, plot_width, plot_height=100,fontsize='20pt',xaxis=False)            
         return
         
     slider.param.watch(update,'value',onlychanged=True)
     #slider.param.trigger('value')    
-    xzoom_slider.param.watch(update,'value')       
-    search_pane.param.watch(search_features,'value')    
+    xzoom_slider.param.watch(update,'value')           
     loc_pane.param.watch(update,'value',onlychanged=True)    
-    left_button.param.watch(pan,'clicks')
-    right_button.param.watch(pan,'clicks')
-    #debug_pane.object = utils.get_fasta_names(ref_file)[0] 
     if ref_file != None:
         chrom_select.options = utils.get_fasta_names(ref_file)
     #plot
@@ -135,7 +114,6 @@ import panel.widgets as pnw
 pn.extension()
 from pybioviz import dashboards, utils, plotters
 from importlib import reload
-from pybioviz import dashboards, utils, plotters
 
 #need to load panel extension first
 pn.extension(comms='vscode')
