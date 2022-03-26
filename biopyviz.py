@@ -3,14 +3,11 @@ import os, sys, io, random
 import string
 import numpy as np
 import pandas as pd
-
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.Align import MultipleSeqAlignment
 from Bio import AlignIO, SeqIO
-
 from IPython.display import HTML
-
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, Plot, LinearAxis, Grid, CustomJS, Slider, HoverTool, NumeralTickFormatter, Arrow, NormalHead
 from bokeh.models import LinearAxis, Range1d, DataRange1d
@@ -18,7 +15,6 @@ from bokeh.models.glyphs import Text, Rect
 from bokeh.layouts import gridplot, column
 import panel as pn
 import panel.widgets as pnw
-
 from pybioviz.pybioviz.utils import genbank_to_features
 pn.extension()
 
@@ -34,8 +30,6 @@ pn.extension(comms='vscode')
 from pybioviz import dashboards
 app = dashboards.genome_features_viewer('example.gff')
 app
-# %%
-
 
 # %%
 def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
@@ -59,18 +53,6 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
         slider.end = seqlen
     else:
         slider.end = int(df.end.max())
-    
-    def pan(event):
-        p = feature_pane.object
-        rng = p.x_range.end-p.x_range.start        
-        inc = int(rng/10)
-        print (event.obj.name)
-        if event.obj.name == '<':
-            slider.value = int(slider.value) - inc        
-        else:
-            slider.value = int(slider.value) + inc   
-        update(event)
-        return
     
     def update(event):      
         print (event.obj.name)
@@ -99,13 +81,13 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     loc_pane.param.watch(update,'value',onlychanged=True)    
     if ref_file != None:
         chrom_select.options = utils.get_fasta_names(ref_file)
-    #plot
-    p = feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
     
+    p =feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
     top = pn.Row(xzoom_slider)
     main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
-    app = pn.Column(top,slider,main, sizing_mode='stretch_width',width_policy='max',margin=20)
+    app = pn.Column(top,main,slider, sizing_mode='stretch_width',width_policy='max',margin=20)
     return app
+
 
 # %%
 import panel as pn
@@ -117,9 +99,35 @@ from importlib import reload
 #need to load panel extension first
 pn.extension(comms='vscode')
 from pybioviz import dashboards
-app = plasmid_features_viewer('d378_attb-entry.gb')
+app = plasmid_features_viewer('d378_attb-entry.gb',ref_file= 'example.fasta')
 app
 
 # %%
-utils.genbank_to_features('d378_attb-entry.gb')
+# %%
+from Bio import SeqIO
+rec = list(SeqIO.parse(open('d378_attb-entry.gb','r'),'genbank'))[0]
+rec
+# %%
+#rom pyfaidx import Fasta
+#efseq = Fasta(filename)
+#if type(key) is int:
+ #   chrom = list(refseq.keys())[key]
+#seq = refseq[chrom][start:end].seq
+
+from Bio import SeqIO
+SeqIO.convert("d378_attb-entry.gb", "genbank", "example.fasta", "fasta")
+# %%
+
+from pyfaidx import Fasta
+refseq = Fasta("example.fasta")
+chrom = list(refseq.keys())[0]
+seq = refseq[chrom][0:100].seq
+seq
+
+
+
+# %%
+
+utils.get_fasta_names('example.fasta')
+
 # %%
