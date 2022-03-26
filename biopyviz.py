@@ -44,7 +44,6 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     loc_pane = pnw.TextInput(name='location',value='',width=150)
     slider = pnw.IntSlider(name='start',start=0,end=10000,step=500,value=1,width=plot_width)
     xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=5,width=100)
-    chrom_select = pnw.Select(name='chrom',width=220)
     feature_pane = pn.pane.Bokeh(height=100,margin=10)
     seq_pane = pn.pane.Bokeh(height=50,margin=10)
     
@@ -79,8 +78,7 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     slider.param.watch(update,'value',onlychanged=True)
     xzoom_slider.param.watch(update,'value')           
     loc_pane.param.watch(update,'value',onlychanged=True)    
-    if ref_file != None:
-        chrom_select.options = utils.get_fasta_names(ref_file)
+
     
     p =feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
     top = pn.Row(xzoom_slider)
