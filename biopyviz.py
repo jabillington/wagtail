@@ -18,6 +18,8 @@ from bokeh.models.glyphs import Text, Rect
 from bokeh.layouts import gridplot, column
 import panel as pn
 import panel.widgets as pnw
+
+from pybioviz.pybioviz.utils import genbank_to_features
 pn.extension()
 
 from pybioviz import dashboards, utils, plotters
@@ -42,7 +44,7 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     if gff_file is None:
         return
     
-    features = utils.gff_to_features(gff_file)
+    features = utils.genbank_to_features(gff_file)
     df = utils.features_to_dataframe(features)
     
     loc_pane = pnw.TextInput(name='location',value='',width=150)
@@ -84,17 +86,15 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
             end = int(vals[1])
             slider.value = start        
             
-        #debug_pane.object=type(start)
         p = feature_pane.object
         p.x_range.start = start
         p.x_range.end = end
         if ref_file:
             sequence = utils.get_fasta_sequence(ref_file, start, end)
-            seq_pane.object = plotters.plot_sequence(sequence, plot_width, plot_height=100,fontsize='20pt',xaxis=False)            
+            seq_pane.object = plotters.plot_sequence(sequence, plot_width, plot_height=100,fontsize='20pt',xaxis=TRUE)            
         return
         
     slider.param.watch(update,'value',onlychanged=True)
-    #slider.param.trigger('value')    
     xzoom_slider.param.watch(update,'value')           
     loc_pane.param.watch(update,'value',onlychanged=True)    
     if ref_file != None:
@@ -102,7 +102,6 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
     #plot
     p = feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
     
-    #side = pn.Column(file_input,css_classes=['form'],width=200,margin=20)
     top = pn.Row(xzoom_slider)
     main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
     app = pn.Column(top,slider,main, sizing_mode='stretch_width',width_policy='max',margin=20)
@@ -118,7 +117,9 @@ from importlib import reload
 #need to load panel extension first
 pn.extension(comms='vscode')
 from pybioviz import dashboards
-app = plasmid_features_viewer('example.gff')
+app = plasmid_features_viewer('d378_attb-entry.gb')
 app
 
+# %%
+utils.genbank_to_features('d378_attb-entry.gb')
 # %%
