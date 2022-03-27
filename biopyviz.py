@@ -1,4 +1,4 @@
-# %%
+# %% Load dependencies
 import os, sys, io, random
 import string
 import numpy as np
@@ -15,27 +15,20 @@ from bokeh.models.glyphs import Text, Rect
 from bokeh.layouts import gridplot, column
 import panel as pn
 import panel.widgets as pnw
-from pybioviz.pybioviz.utils import genbank_to_features, genbank_to_sequence, get_fasta_length, get_fasta_sequence
-pn.extension()
-
+from pybioviz.utils import genbank_to_features, get_fasta_length, get_fasta_sequence
 from pybioviz import dashboards, utils, plotters
 from importlib import reload
-
+pn.extension(comms='vscode')
 
 
 # %%
-import panel as pn
-#need to load panel extension first
-pn.extension(comms='vscode')
-from pybioviz import dashboards
+# Original genome_features_veiwer to modfify
+
 app = dashboards.genome_features_viewer('example.gff')
 app
-
-
-
-
 # 
 # %%
+# Create a quick helper to extract the seq from gb files
 def genbank_to_sequence(gb_file, key=0):
     """Read genbank record features"""
 
@@ -44,6 +37,8 @@ def genbank_to_sequence(gb_file, key=0):
     rec = list(SeqIO.parse(open(gb_file,'r'),'genbank'))[key]
     return rec.seq
 # %%
+# Main plasmid feature body
+
 def plasmid_features_viewer(gb_file, ref_file=None, plot_width=900):
     """Plasmid feature viewer app"""
     
@@ -104,75 +99,33 @@ def plasmid_features_viewer(gb_file, ref_file=None, plot_width=900):
 
 
 # %%
-import panel as pn
-import panel.widgets as pnw
-pn.extension()
-from pybioviz import dashboards, utils, plotters
+# Test panel for plasmid features viewer
 from importlib import reload
-
-#need to load panel extension first
-pn.extension(comms='vscode')
-from pybioviz import dashboards
 app = plasmid_features_viewer('d378_attb-entry.gb',ref_file= 'example.fasta')
 app
 
-# %%
-# %%
-from Bio import SeqIO
-rec = list(SeqIO.parse(open('d378_attb-entry.gb','r'),'genbank'))[0]
-rec
-# %%
-#rom pyfaidx import Fasta
-#efseq = Fasta(filename)
-#if type(key) is int:
- #   chrom = list(refseq.keys())[key]
-#seq = refseq[chrom][start:end].seq
-
-from Bio import SeqIO
-SeqIO.convert("d378_attb-entry.gb", "genbank", "example.fasta", "fasta")
-# %%
-
-from pyfaidx import Fasta
-refseq = Fasta("example.fasta")
-chrom = list(refseq.keys())[0]
-seq = refseq[chrom][0:100].seq
-seq
-
-
 
 
 
 # %%
-
-utils.get_fasta_names('example.fasta')
-
 # %%
-plotters.plot_sequence("ATGGATGTGGAGATGATAGTGATTGATGAT")
-# %%
-from Bio import AlignIO, SeqIO
+
 x =genbank_to_sequence("d378_attb-entry.gb")
+plotters.plot_sequence(x)
 # %%
 def get_fasta_length(sequence):
     """Get length of reference sequence"""
     l = len(sequence)
     return l
 
-get_fasta_length(x)
-
-# %%
 def get_fasta_sequence(filename, start, end, key=0):
     """Get chunk of indexed fasta sequence at start/end points"""
-
-    #from pyfaidx import Fasta
-    #refseq = Fasta(filename)
-    #if type(key) is int:
-    #    chrom = list(refseq.keys())[key]
     seq = filename[start:end]
     return seq
 # %%
-
-get_fasta_sequence(x, 0, 100)
-# %%
-
+from pybioviz import plotters
+out = pn.pane.Bokeh()
+out.object = plotters.plot_sequence(x, xaxis=False)
+out
 
 # %%
