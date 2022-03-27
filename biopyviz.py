@@ -15,7 +15,7 @@ from bokeh.models.glyphs import Text, Rect
 from bokeh.layouts import gridplot, column
 import panel as pn
 import panel.widgets as pnw
-from pybioviz.pybioviz.utils import genbank_to_features
+from pybioviz.pybioviz.utils import genbank_to_features, genbank_to_sequence
 pn.extension()
 
 from pybioviz import dashboards, utils, plotters
@@ -32,20 +32,23 @@ app = dashboards.genome_features_viewer('example.gff')
 app
 
 # %%
-def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
+def plasmid_features_viewer(gb_file, ref_file=None, plot_width=900):
     """Plasmid feature viewer app"""
     
-    if gff_file is None:
+    if gb_file is None:
         return
     
-    features = utils.genbank_to_features(gff_file)
+    features = utils.genbank_to_features(gb_file)
     df = utils.features_to_dataframe(features)
-    
+    fasta_seq = genbank_to_sequence(gb_file)
+
+
     loc_pane = pnw.TextInput(name='location',value='',width=150)
     slider = pnw.IntSlider(name='start',start=0,end=10000,step=500,value=1,width=plot_width)
     xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=5,width=100)
     feature_pane = pn.pane.Bokeh(height=100,margin=10)
-    seq_pane = pn.pane.Bokeh(height=50,margin=10)
+   # seq_pane = pn.pane.Bokeh(height=50,margin=10)
+    seq_pane = pn.pane.HTML(name='sequences',height=100,css_classes=['scrollingArea'])
     
     if ref_file is not None:
         seqlen = utils.get_fasta_length(ref_file)
@@ -81,6 +84,7 @@ def plasmid_features_viewer(gff_file, ref_file=None, plot_width=900):
 
     
     p =feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
+   # seq_pane.object = plotters.plot_sequence("ATGGATGTGGAGATGATAGTGATTGATGAT")
     top = pn.Row(xzoom_slider)
     main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
     app = pn.Column(top,main,slider, sizing_mode='stretch_width',width_policy='max',margin=20)
@@ -124,8 +128,12 @@ seq
 
 
 
+
+
 # %%
 
 utils.get_fasta_names('example.fasta')
 
+# %%
+plotters.plot_sequence("ATGGATGTGGAGATGATAGTGATTGATGAT")
 # %%
