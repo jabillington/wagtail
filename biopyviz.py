@@ -15,7 +15,7 @@ from bokeh.models.glyphs import Text, Rect
 from bokeh.layouts import gridplot, column
 import panel as pn
 import panel.widgets as pnw
-from pybioviz.pybioviz.utils import genbank_to_features, genbank_to_sequence
+from pybioviz.pybioviz.utils import genbank_to_features, genbank_to_sequence, get_fasta_length, get_fasta_sequence
 pn.extension()
 
 from pybioviz import dashboards, utils, plotters
@@ -31,6 +31,18 @@ from pybioviz import dashboards
 app = dashboards.genome_features_viewer('example.gff')
 app
 
+
+
+
+# 
+# %%
+def genbank_to_sequence(gb_file, key=0):
+    """Read genbank record features"""
+
+    if gb_file is None or not os.path.exists(gb_file):
+        return
+    rec = list(SeqIO.parse(open(gb_file,'r'),'genbank'))[key]
+    return rec.seq
 # %%
 def plasmid_features_viewer(gb_file, ref_file=None, plot_width=900):
     """Plasmid feature viewer app"""
@@ -136,4 +148,31 @@ utils.get_fasta_names('example.fasta')
 
 # %%
 plotters.plot_sequence("ATGGATGTGGAGATGATAGTGATTGATGAT")
+# %%
+from Bio import AlignIO, SeqIO
+x =genbank_to_sequence("d378_attb-entry.gb")
+# %%
+def get_fasta_length(sequence):
+    """Get length of reference sequence"""
+    l = len(sequence)
+    return l
+
+get_fasta_length(x)
+
+# %%
+def get_fasta_sequence(filename, start, end, key=0):
+    """Get chunk of indexed fasta sequence at start/end points"""
+
+    #from pyfaidx import Fasta
+    #refseq = Fasta(filename)
+    #if type(key) is int:
+    #    chrom = list(refseq.keys())[key]
+    seq = filename[start:end]
+    return seq
+# %%
+
+get_fasta_sequence(x, 0, 100)
+# %%
+
+
 # %%
