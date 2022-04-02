@@ -124,8 +124,9 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
+§
 # Pyre type checker
 .pyre/
 
 montacilla_flutter_app/
+pybioviz/
