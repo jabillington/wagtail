@@ -67,18 +67,6 @@ def plasmid_features_viewer(gb_file, plot_width=900):
         update(event)
         return   
     
-    def pan(event):
-        p = feature_pane.object
-        rng = p.x_range.end-p.x_range.start        
-        inc = int(rng/10)
-        print (event.obj.name)
-        if event.obj.name == '<':
-            slider.value = int(slider.value) - inc        
-        else:
-            slider.value = int(slider.value) + inc   
-        update(event)
-        return
-    
     def update(event):      
         print (event.obj.name)
         if event.obj.name in ['start', 'zoom']:
@@ -107,10 +95,6 @@ def plasmid_features_viewer(gb_file, plot_width=900):
     xzoom_slider.param.watch(update,'value')       
     search_pane.param.watch(search_features,'value')    
     loc_pane.param.watch(update,'value',onlychanged=True)    
-    left_button.param.watch(pan,'clicks')
-    right_button.param.watch(pan,'clicks')
- 
-
 
     feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
     seq_pane.object = plotters.plot_sequence(fasta_seq, plot_width, plot_height=50,fontsize='9pt',xaxis=False)  
@@ -118,7 +102,6 @@ def plasmid_features_viewer(gb_file, plot_width=900):
     main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
     app = pn.Column(top,slider,main, sizing_mode='stretch_width',width_policy='max',margin=20)
     return app
-
 # %%
 plasmid_features_viewer('d378_attb-entry.gb')
 
