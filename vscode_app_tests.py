@@ -79,15 +79,14 @@ def plasmid_features_viewer(gb_file, plot_width=900):
         return
     
     features = utils.genbank_to_features(gb_file)
-    df = utils.features_to_dataframe(features)
-    
+   
     loc_pane = pnw.TextInput(name='location',value='',width=150)
     search_pane = pnw.TextInput(name='find_gene',value='',width=220)
     slider = pnw.IntSlider(name='start',start=0,end=10000,step=500,value=1,width=plot_width)
     xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=5,width=100)
     fasta_seq = genbank_to_sequence(gb_file)
     feature_pane = pn.pane.Bokeh(height=100,margin=10)
-    seq_pane = pn.pane.Bokeh(name='seqzoom', tbc='',height=50, margin = 10)
+    seq_pane = pn.pane.Bokeh(height=50, margin = 10)
     
     seqlen = len(fasta_seq)
     slider.end = seqlen
@@ -107,9 +106,9 @@ def plasmid_features_viewer(gb_file, plot_width=900):
     def update(event):      
         print (event.obj.name)
         if event.obj.name in ['start', 'zoom']:
-            xzoom = xzoom_slider.value*200
+            xzoom = xzoom_slider.value*800
             start = int(slider.value)
-            N = xzoom/2
+            N = xzoom/16
             end = int(start+N)
             loc_pane.value = str(start)+':'+str(end)        
         elif event.obj.name == 'location':            
@@ -124,16 +123,23 @@ def plasmid_features_viewer(gb_file, plot_width=900):
         p.x_range.end = end
     
         sequence = fasta_seq[start: end]
-        seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='9pt', tbc= 100/(end-start), xaxis=False)            
 
-        
+        if (end-start) <= 300:
+            seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='pt',xaxis=False,tbc = 1)            
+        else:
+            seq_pane.object = plotters.plot_empty()
+
+
+
+
+
     slider.param.watch(update,'value',onlychanged=True) 
-    xzoom_slider.param.watch(update,'value')       
+    xzoom_slider.param.watch(update,'value')    
     search_pane.param.watch(search_features,'value')
     loc_pane.param.watch(update,'value',onlychanged=True)    
 
     feature_pane.object = plotters.plot_features(features, 0, 10000, plot_width=plot_width, tools="", rows=4)
-    seq_pane.object = plot_sequence_mod(fasta_seq, plot_width, plot_height=50,fontsize='9pt',xaxis=False)  
+    seq_pane.object = plotters.plot_empty()
     top = pn.Row(loc_pane,xzoom_slider)
     main = pn.Column(feature_pane, seq_pane, sizing_mode='stretch_width')
     app = pn.Column(top,slider,main, sizing_mode='stretch_width',width_policy='max',margin=20)
