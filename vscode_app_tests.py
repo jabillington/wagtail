@@ -83,7 +83,7 @@ def plasmid_features_viewer(gb_file, plot_width=900):
     loc_pane = pnw.TextInput(name='location',value='',width=150)
     search_pane = pnw.TextInput(name='find_gene',value='',width=220)
     slider = pnw.IntSlider(name='start',start=0,end=10000,step=500,value=1,width=plot_width)
-    xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=5,width=100)
+    xzoom_slider = pnw.IntSlider(name='zoom',start=1,end=500,value=100,step=1,width=100)
     fasta_seq = genbank_to_sequence(gb_file)
     feature_pane = pn.pane.Bokeh(height=100,margin=10)
     seq_pane = pn.pane.Bokeh(height=50, margin = 10)
@@ -123,11 +123,15 @@ def plasmid_features_viewer(gb_file, plot_width=900):
         p.x_range.end = end
     
         sequence = fasta_seq[start: end]
-
-        if (end-start) <= 300:
-            seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='pt',xaxis=False,tbc = 1)            
-        else:
+        range=end-start
+        if range >= 300:
             seq_pane.object = plotters.plot_empty()
+        elif range > 200:
+            seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='7pt',xaxis=False,tbc = 1)
+        elif range > 80:
+            seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='9pt',xaxis=False,tbc = 1)  
+        else:
+            seq_pane.object = plot_sequence_mod(sequence, plot_width, plot_height=50,fontsize='13pt',xaxis=False,tbc = 1)            
 
 
 
